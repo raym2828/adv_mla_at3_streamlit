@@ -2,6 +2,7 @@
 Repository to host streamlit app and dockerfile development
 
 ## Folder Structure
+```markdown
 ├── fast_api
 │   └── app
 ├── ml_stuff
