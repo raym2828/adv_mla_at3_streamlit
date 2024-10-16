@@ -1,5 +1,5 @@
 # adv_mla_at3_streamlit
-Repository to host streamlit app and dockerfile development
+Repository to host streamlit app and Dockerfile development
 
 ## Folder Structure
 ```markdown
