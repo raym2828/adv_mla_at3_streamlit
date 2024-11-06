@@ -52,7 +52,7 @@ destination_airports = {
 #FASTAPI_URL = "https://at2-api.onrender.com"
 
 # Title of the application
-st.title(":heavy_check_mark: Save your flight budget")
+st.title(":heavy_check_mark: :blue[Save your flight budget]")
 
 st.sidebar.header("Flight Details")
 
@@ -73,7 +73,15 @@ destination_airports = {name: code for name, code in destination_airports.items(
 destination_name = st.sidebar.selectbox("Choose destination airport", list(destination_airports.keys()))
 destination_code = destination_airports[destination_name]
 
-departure_date = st.sidebar.date_input("Enter Departure Date")
+
+# Adjust +60 days
+today = datetime.now().date()
+max_date = today + timedelta(days=60)
+
+departure_date = st.sidebar.date_input("Enter Departure Date", value=today, min_value=today, max_value=max_date)
+
+# Restrict the time selection to show only hourly increments from 5:00 AM to 11:00 PM.
+
 departure_time = st.sidebar.time_input("Enter Departure Time")
 
 the_date = datetime.today().strftime('%Y-%m-%d-%H')
@@ -166,7 +174,7 @@ if st.sidebar.button("Compare Prices"):
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.header("Actual Prices")
+                st.subheader("Actual Prices", divider="gray")
                 
                 filtered_offers = []
                 
@@ -186,14 +194,30 @@ if st.sidebar.button("Compare Prices"):
                             break  # Stop checking segments once a valid one is found
 
                 if filtered_offers:
-                    sorted_offers = sorted(filtered_offers, key=lambda x: float(x[0]['price']['total']))
-                    limited_offers = sorted_offers[:10]  # Limit the number of results to display
+                    direct_offers = [offer for offer, is_direct in filtered_offers if is_direct]
+                    transfer_offers = [offer for offer, is_direct in filtered_offers if not is_direct]
 
-                    # Display the top offers
-                    for offer, is_direct in limited_offers:
+                    # Sort by price
+                    direct_offers = sorted(direct_offers, key=lambda x: float(x['price']['total']))
+                    transfer_offers = sorted(transfer_offers, key=lambda x: float(x['price']['total']))
+
+                    # Determine which offers to display based on checkbox selection
+                    if show_direct and not show_one_transfer:
+                        # Show the two cheapest direct flights
+                        limited_offers = direct_offers[:2]
+                        direct_prices = [float(offer['price']['total']) for offer in limited_offers[:1]]
+                    elif show_direct and show_one_transfer:
+                        # Show the cheapest direct flight and the cheapest transfer flight
+                        limited_offers = direct_offers[:1] + transfer_offers[:1]
+                        direct_prices = [float(offer['price']['total']) for offer in limited_offers[:1]]
+                    else:
+                        limited_offers = []
+
+                    # Display the offers
+                    for offer in limited_offers:
                         st.write(f"**Offer ID:** {offer['id']}")
                         st.write(f"**Price:** {offer['price']['total']} {offer['price']['currency']}")
-                        flight_type = "Direct Flight" if is_direct else "Flight with Transfer(s)"
+                        flight_type = "Direct Flight" if offer in direct_offers else "Flight with Transfer(s)"
                         st.write(f"**Flight Type:** {flight_type}")
                         st.write("---")
                 else:
@@ -203,16 +227,53 @@ if st.sidebar.button("Compare Prices"):
 # http://0.0.0.0:8000/flight/predict/?today=2024-11-04-17&lower_time=2024-12-22-10&origin=DEN&des=JFK&cabin=ECONOMY&direct=1&distance=1880
 
             with col2:
-                st.header("Direct Flight Predictions")
+                st.subheader("Direct Flight Predictions", divider="gray")
                 response = requests.get(f"{FASTAPI_URL}/flight/predict/?today={the_date}&predict_datetime={departure_datetime_str}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={1}&distance={avg_distance}")
                 if response.status_code == 200:
-                    predict_data = response.json()
-                    st.dataframe(predict_data)
+                    predict_data_direct = response.json()
+                    non_stop_price = list(predict_data_direct.values())
+                    st.write(f"Price: {non_stop_price} USD")  # This will display only the values as a list
             #st.json(predict_data)
                 else:
                     st.error("Error fetching data.")
 
             with col3:
-                st.header("Transfer Flight Predictions")
-            #    if show_one_transfer == True:
+                st.subheader("Transfer Flight Predictions", divider="gray")
+                if show_one_transfer:
+                    # Make the request to the FastAPI endpoint
+                    response = requests.get(
+                        f"{FASTAPI_URL}/flight/predict/?today={the_date}&predict_datetime={departure_datetime_str}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={0}&distance={avg_distance}"
+                    )
                     
+                    # Check if the request was successful
+                    if response.status_code == 200:
+                        predict_data_transfer = response.json()
+                        one_stop_price = list(predict_data_transfer.values())
+                        st.write(f"Price : {one_stop_price} USD")
+
+                    else:
+                        st.error("Error fetching data.")
+
+
+            with st.container():
+                st.subheader(":sunglasses: :blue[Your flight summary]")
+
+                summary_text = (
+                    f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
+                    f"in **{cabin_type}**, we predict:\n\n"
+                    f"- A non-stop flight would cost **{non_stop_price} USD** \n\n"
+                    f"- Currently, prices are around **{direct_prices} USD**. \n\n"
+                )
+
+                # Provide additional tip based on price comparison
+                if direct_prices > non_stop_price:
+                    summary_text += ":blue-background[So, maybe try another day or route if possible!]"
+                else:
+                    summary_text += ":blue-background[This seems like a reasonable fare for your selection.]"
+
+                # Display the summary in Streamlit
+                st.markdown(summary_text)
+        
+        #st.write("*This app predict +60 days ahead to provide best results*")
+
+
