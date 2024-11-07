@@ -16,7 +16,7 @@ json_file_path = os.path.join(current_dir, 'average_distances.json')
  
 if os.path.exists(json_file_path):
     with open(json_file_path, 'r') as json_file:
-        average_distances = json.load(json_file)
+        avg_distances = json.load(json_file)
 else:
     st.error("The file 'average_distances.json' is missing in the current directory.")
 
