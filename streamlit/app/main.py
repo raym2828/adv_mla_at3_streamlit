@@ -233,28 +233,31 @@ if st.sidebar.button("Compare Prices"):
                     transfer_offers = sorted(transfer_offers, key=lambda x: float(x['price']['total']))
 
                     # Determine which offers to display based on checkbox selection
-                    if show_direct:
-                        # Show the two cheapest direct flights
-                        limited_offers = direct_offers[:2]
-                        direct_price = float(limited_offers[0]['price']['total']) 
-                        direct_price_as_strings = str(direct_price)
-                    else:
-                        # If 'show_direct' is False, you can add logic here to show other options if needed
-                        # For example, show the cheapest transfer flights
-                        limited_offers = direct_offers[:1] + transfer_offers[:1]
-                        direct_price = float(limited_offers[0]['price']['total'])  # First offer in the list is the direct flight
-                        transfer_price = float(limited_offers[1]['price']['total'])
+                    try:
+                        if show_direct:
+                            # Show the two cheapest direct flights
+                            limited_offers = direct_offers[:2]
+                            direct_price = float(limited_offers[0]['price']['total']) 
+                            direct_price_as_strings = str(direct_price)
+                        else:
+                            # If 'show_direct' is False, you can add logic here to show other options if needed
+                            # For example, show the cheapest transfer flights
+                            limited_offers = direct_offers[:1] + transfer_offers[:1]
+                            direct_price = float(limited_offers[0]['price']['total'])  # First offer in the list is the direct flight
+                            transfer_price = float(limited_offers[1]['price']['total'])
 
-                        direct_price_as_strings = str(direct_price)
-                        transfer_price_as_strings = str(transfer_price)
+                            direct_price_as_strings = str(direct_price)
+                            transfer_price_as_strings = str(transfer_price)
 
-                    # Display the offers
-                    for idx, offer in enumerate(limited_offers, start=1):
-                        st.write(f"**Offer #{idx}:**")
-                        st.write(f"**Price:** {offer['price']['total']} {offer['price']['currency']}")
-                        flight_type = "Direct Flight" if offer in direct_offers else "Flight with Transfer(s)"
-                        st.write(f"**Flight Type:** {flight_type}")
-                        st.write("---")
+                        # Display the offers
+                        for idx, offer in enumerate(limited_offers, start=1):
+                            st.write(f"**Offer #{idx}:**")
+                            st.write(f"**Price:** {offer['price']['total']} {offer['price']['currency']}")
+                            flight_type = "Direct Flight" if offer in direct_offers else "Flight with Transfer(s)"
+                            st.write(f"**Flight Type:** {flight_type}")
+                            st.write("---")
+                    except IndexError:
+                            st.error("Invalid flight selection. Please adjust your search criteria and try again.")
                 else:
                     st.info("No flights found within the specified time window.")
 
