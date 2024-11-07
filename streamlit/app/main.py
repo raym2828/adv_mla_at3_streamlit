@@ -11,8 +11,16 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 FASTAPI_URL = "https://adv-mla-at3.onrender.com/"
 
-with open('average_distances.json', 'r') as json_file:
-    avg_distances = json.load(json_file)
+
+json_file_path = os.path.join(current_dir, 'average_distances.json')
+ 
+# Check if the file exists before opening itif os.path.exists(json_file_path):
+withopen(json_file_path, 'r') as json_file:
+        average_distances = json.load(json_file)
+else:
+    st.error("The file 'average_distances.json' is missing in the current directory.")
+
+
 
 airports = {
     "Atlanta (ATL)": "ATL",
