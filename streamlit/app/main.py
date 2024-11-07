@@ -52,7 +52,7 @@ destination_airports = {
 #FASTAPI_URL = "https://at2-api.onrender.com"
 
 # Title of the application
-st.title(":heavy_check_mark: :blue[Save your flight budget]")
+st.title(":airplane_departure: :blue[Save Your Flight Budget]")
 
 st.sidebar.header("Flight Details")
 
@@ -95,7 +95,7 @@ departure_datetime = datetime.combine(departure_date, departure_time)
 departure_datetime_str = departure_datetime.strftime("%Y-%m-%d-%H")
 
 show_direct = st.sidebar.checkbox("Direct Flights Only", value=True)
-show_one_transfer = st.sidebar.checkbox("Allow One Transfer", value=False)
+#show_one_transfer = st.sidebar.checkbox("Allow One Transfer", value=False)
 
 cabin_type = st.sidebar.selectbox("Select Cabin Type", ["ECONOMY", "PREMIUM_ECONOMY", "BUSINESS", "FIRST"])
 
@@ -205,7 +205,7 @@ if st.sidebar.button("Compare Prices"):
             col1, col2, col3 = st.columns(3)
 
             with col1:
-                st.subheader("Actual Prices", divider="gray")
+                st.subheader(":blue[Actual Prices]", divider="gray")
                 
                 filtered_offers = []
                 
@@ -233,20 +233,24 @@ if st.sidebar.button("Compare Prices"):
                     transfer_offers = sorted(transfer_offers, key=lambda x: float(x['price']['total']))
 
                     # Determine which offers to display based on checkbox selection
-                    if show_direct and not show_one_transfer:
+                    if show_direct:
                         # Show the two cheapest direct flights
                         limited_offers = direct_offers[:2]
-                        direct_prices = [float(offer['price']['total']) for offer in limited_offers[:1]]
-                    elif show_direct and show_one_transfer:
-                        # Show the cheapest direct flight and the cheapest transfer flight
-                        limited_offers = direct_offers[:1] + transfer_offers[:1]
-                        direct_prices = [float(offer['price']['total']) for offer in limited_offers[:1]]
+                        direct_price = [float(offer['price']['total']) for offer in limited_offers]
+                        direct_price_as_strings = str(direct_price[0])
                     else:
-                        limited_offers = []
+                        # If 'show_direct' is False, you can add logic here to show other options if needed
+                        # For example, show the cheapest transfer flights
+                        limited_offers = direct_offers[:1] + transfer_offers[:1]
+                        direct_price = float(limited_offers[0]['price']['total'])  # First offer in the list is the direct flight
+                        transfer_price = float(limited_offers[1]['price']['total'])
+
+                        direct_price_as_strings = str(direct_price)
+                        transfer_price_as_strings = str(transfer_price)
 
                     # Display the offers
-                    for offer in limited_offers:
-                        st.write(f"**Offer ID:** {offer['id']}")
+                    for idx, offer in enumerate(limited_offers, start=1):
+                        st.write(f"**Offer #{idx}:**")
                         st.write(f"**Price:** {offer['price']['total']} {offer['price']['currency']}")
                         flight_type = "Direct Flight" if offer in direct_offers else "Flight with Transfer(s)"
                         st.write(f"**Flight Type:** {flight_type}")
@@ -258,7 +262,7 @@ if st.sidebar.button("Compare Prices"):
 # http://0.0.0.0:8000/flight/predict/?today=2024-11-04-17&lower_time=2024-12-22-10&origin=DEN&des=JFK&cabin=ECONOMY&direct=1&distance=1880
 
             with col2:
-                st.subheader("Direct Flight Predictions", divider="gray")
+                st.subheader(":blue[Direct Flight Prediction]", divider="gray")
                 response = requests.get(
                     f"{FASTAPI_URL}/flight/predict/?today={the_date}"
                     f"&predict_datetime={departure_datetime_str}"
@@ -274,14 +278,16 @@ if st.sidebar.button("Compare Prices"):
                 if response.status_code == 200:
                     predict_data_direct = response.json()
                     non_stop_price = list(predict_data_direct.values())
-                    st.write(f"Price: {non_stop_price} USD")  # This will display only the values as a list
-            #st.json(predict_data)
+                    non_stop_price_as_float = float(non_stop_price[0])
+                    non_stop_price_as_string = str(non_stop_price[0])
+                    st.write(f"**Price:** {non_stop_price_as_string} USD")  # This will display only the values as a list
+
                 else:
                     st.error("Error fetching data.")
 
             with col3:
-                st.subheader("Transfer Flight Predictions", divider="gray")
-                if show_one_transfer:
+                st.subheader(":blue[Transfer Flight Prediction]", divider="gray")
+                if not show_direct:
                     # Make the request to the FastAPI endpoint
                     response = requests.get(
                     f"{FASTAPI_URL}/flight/predict/?today={the_date}"
@@ -296,36 +302,48 @@ if st.sidebar.button("Compare Prices"):
                     f"&basic={basic_eco}"
                 )
                     
-                    # Check if the request was successful
                     if response.status_code == 200:
                         predict_data_transfer = response.json()
                         one_stop_price = list(predict_data_transfer.values())
-                        st.write(f"Price : {one_stop_price} USD")
+                        non_stop_price_as_float = float(one_stop_price[0])
+                        one_stop_price_as_string = str(one_stop_price[0])
+                        st.write(f"**Price:** {one_stop_price_as_string} USD")
 
                     else:
                         st.error("Error fetching data.")
 
 
             with st.container():
-                st.subheader(":sunglasses: :blue[Your flight summary]")
-
-                summary_text = (
+                st.subheader(":sunglasses: :blue[Your Flight Summary]")
+                if show_direct:
+                    summary_text = (
                     f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
                     f"in **{cabin_type}**, we predict:\n\n"
-                    f"- A non-stop flight would cost **{non_stop_price} USD** \n\n"
-                    f"- Currently, prices are around **{direct_prices} USD**. \n\n"
-                )
+                    f"- A direct flight would cost **{non_stop_price_as_string} USD**. \n\n"
+                    f"- Currently, actual price is around **{direct_price_as_strings} USD**. \n\n"
+                    )
+                    if direct_price > non_stop_price_as_float:
+                        comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                    else:
+                        comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
+
+                else:
+                    summary_text = (
+                    f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
+                    f"in **{cabin_type}**, we predict:\n\n"
+                    f"- A transfer flight would cost **{one_stop_price_as_string} USD**. \n\n"
+                    f"- Currently, actual price is around **{transfer_price_as_strings} USD**. \n\n"
+                    )
 
                 # Provide additional tip based on price comparison
-                if direct_prices > non_stop_price:
-                    comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
-                else:
-                    comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
+                    if transfer_price > non_stop_price_as_float:
+                        comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                    else:
+                        comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
 
                 # Display the summary in Streamlit
                 st.markdown(summary_text)
                 st.markdown(comparison_text, unsafe_allow_html=True)
         
-        #st.write("*This app predict +60 days ahead to provide best results*")
 
 
