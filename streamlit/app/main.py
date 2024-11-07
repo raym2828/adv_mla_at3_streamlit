@@ -236,8 +236,8 @@ if st.sidebar.button("Compare Prices"):
                     if show_direct:
                         # Show the two cheapest direct flights
                         limited_offers = direct_offers[:2]
-                        direct_price = [float(offer['price']['total']) for offer in limited_offers]
-                        direct_price_as_strings = str(direct_price[0])
+                        direct_price = float(limited_offers[0]['price']['total']) 
+                        direct_price_as_strings = str(direct_price)
                     else:
                         # If 'show_direct' is False, you can add logic here to show other options if needed
                         # For example, show the cheapest transfer flights
@@ -305,7 +305,7 @@ if st.sidebar.button("Compare Prices"):
                     if response.status_code == 200:
                         predict_data_transfer = response.json()
                         one_stop_price = list(predict_data_transfer.values())
-                        non_stop_price_as_float = float(one_stop_price[0])
+                        one_stop_price_as_float = float(one_stop_price[0])
                         one_stop_price_as_string = str(one_stop_price[0])
                         st.write(f"**Price:** {one_stop_price_as_string} USD")
 

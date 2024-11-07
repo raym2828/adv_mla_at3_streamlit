@@ -3,26 +3,12 @@ services:
     name: fastapi-app
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn fast_api:app --host 0.0.0.0 --port 8000"
+    startCommand: "uvicorn fast_api.app:app --host 0.0.0.0 --port 8000"
     plan: free
     branches: ["main"]
     envVars:
       - key: FASTAPI_PORT
         value: "8000"
-    github:
-      repo: raym2828/adv_mla_at3_streamlit
-      branch: main
- 
-  - type: web
-    name: streamlit-app
-    env: python
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "streamlit run streamlit/app/main.py --server.port 8501"
-    plan: free
-    branches: ["main"]
-    envVars:
-      - key: STREAMLIT_PORT
-        value: "8501"
     github:
       repo: raym2828/adv_mla_at3_streamlit
       branch: main
