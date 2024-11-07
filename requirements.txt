@@ -1,7 +1,11 @@
-streamlit==1.36.0
-pandas==2.2.2
+streamlit==1.38.0
+pandas==2.2.3
 scikit-learn==1.5.1
-fastapi==0.95.1 
-uvicorn==0.22.0 
-joblib
+fastapi==0.115.0
+uvicorn==0.31.0
+joblib==1.4.2
 dumb-init
+xgboost==2.1.1
+pydantic==2.9.2
+prophet==1.1.5
+requests==2.32.3

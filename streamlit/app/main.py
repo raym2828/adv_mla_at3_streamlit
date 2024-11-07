@@ -110,7 +110,7 @@ on = st.sidebar.toggle("Activate extra features")
 
 if on:
     AirlineNameScore = st.sidebar.slider(
-        "Airline Name Score",
+        "Airline Category",
         min_value=1,
         max_value=4,
         value=4,  
