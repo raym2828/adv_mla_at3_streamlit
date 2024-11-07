@@ -328,34 +328,44 @@ if st.sidebar.button("Compare Prices"):
                 st.subheader(":sunglasses: :blue[Your Flight Summary]")
                 try:
                     if show_direct:
-                        summary_text = (
-                        f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
-                        f"in **{cabin_type}**, we predict:\n\n"
-                        f"- A direct flight would cost **{non_stop_price_as_string} USD**. \n\n"
-                        f"- Currently, actual price is around **{direct_price_as_strings} USD**. \n\n"
-                        )
-                        if direct_price > non_stop_price_as_float:
-                            comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                        if direct_price_as_strings:
+                            summary_text = (
+                            f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
+                            f"in **{cabin_type}**, we predict:\n\n"
+                            f"- A direct flight would cost **{non_stop_price_as_string} USD**. \n\n"
+                            f"- Currently, actual price is around **{direct_price_as_strings} USD**. \n\n"
+                            )
+                            if direct_price > non_stop_price_as_float:
+                                comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                            else:
+                             comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
                         else:
-                            comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
-
+                          st.warning("No current direct flight price available.")
+                          comparison_text = ""
+                          summary_text = ""
                     else:
-                        summary_text = (
-                        f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
-                        f"in **{cabin_type}**, we predict:\n\n"
-                        f"- A transfer flight would cost **{one_stop_price_as_string} USD**. \n\n"
-                        f"- Currently, actual price is around **{transfer_price_as_strings} USD**. \n\n"
-                        )
+                        if transfer_price_as_strings:
+                            summary_text = (
+                            f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
+                            f"in **{cabin_type}**, we predict:\n\n"
+                            f"- A transfer flight would cost **{one_stop_price_as_string} USD**. \n\n"
+                            f"- Currently, actual price is around **{transfer_price_as_strings} USD**. \n\n"
+                            )
 
-                    # Provide additional tip based on price comparison
-                        if transfer_price > non_stop_price_as_float:
-                            comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                            if transfer_price > non_stop_price_as_float:
+                                comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
+                            else:
+                                comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
                         else:
-                            comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
+                          st.warning("No current transfer flight price available.")
+                          comparison_text = ""
+                          summary_text = ""
 
                     # Display the summary in Streamlit
-                    st.markdown(summary_text)
-                    st.markdown(comparison_text, unsafe_allow_html=True)
+                    if summary_text:
+                        st.markdown(summary_text)
+                    if comparison_text:
+                        st.markdown(comparison_text, unsafe_allow_html=True)
                 except IndexError:
                     st.error("Sorry, we cannot provide the flight summary due to an invalid flight selection.")
         
