@@ -9,7 +9,7 @@ import os
 # Get the current script directory (absolute path)
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
-FASTAPI_URL = "http://0.0.0.0:8000"
+FASTAPI_URL = "https://adv-mla-at3.onrender.com/"
 
 with open('average_distances.json', 'r') as json_file:
     avg_distances = json.load(json_file)
