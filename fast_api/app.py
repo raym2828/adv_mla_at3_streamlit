@@ -11,7 +11,7 @@ import logging
 app = FastAPI()
 
 
-model_path1 = os.path.join(os.path.dirname(__file__), '../models/linear_model.joblib')
+model_path1 = os.path.join(os.path.dirname(__file__), '../models/xgb_pipeline.joblib')
 model1 = load(model_path1)
 
 
@@ -28,15 +28,16 @@ cabin_class_encoding = {
 @app.get("/")
 async def root():
     return {
-        "project": "Sales Forecasting API",
-        "description": "This API provides sales forecasting for national and store/item levels.",
+        "project": "Flight Predcition API",
+        "description": "This API provides flight prices prediction with users inputs.",
         "endpoints": {
             "/": "API Overview",
             "/health/": "API Health Check",
             "/flight/predict/": "Flight Price prediction",
         },
         "expected_input": {
-            "/flight/predict//": {"date": "YYYY-MM-DD", "store_id": "int", "item_id": "int"}
+            "/flight/predict//": {"today": "YYYY-MM-DD", "predict_datetime": "YYYY-MM-DD", "origin": "str", "des": "str", "cabin": "str",\
+                                  "direct": "int", "aircode": "int", "refund": "bool", "basic": "bool"}
         },
         "output_format": "JSON"
     }
@@ -50,7 +51,7 @@ def healthcheck():
 # &upper_time={upper_bound}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={1}")
 
 @app.get("/flight/predict/")
-def predict_flight_price(today: str, predict_datetime: str, origin: str, des: str, cabin: str, direct: int, distance: int):
+def predict_flight_price(today: str, predict_datetime: str, origin: str, des: str, cabin: str, direct: int, distance: int, aircode: int, refund: bool, basic: bool):
     try:
         # Convert the input date strings into datetime objects
         today_date = datetime.strptime(today, "%Y-%m-%d-%H")
@@ -86,7 +87,10 @@ def predict_flight_price(today: str, predict_datetime: str, origin: str, des: st
                 'startingAirport': [origin],
                 'destinationAirport': [des],
                 'isNonStop': [direct],
-                'totalTravelDistance': [distance]
+                'totalTravelDistance': [distance],
+                'AirlineNameScore': [aircode],
+                'isRefundable': [refund],
+                'isBasicEconomy': [basic]
             })
 
             # Predict the price using the best model
@@ -101,7 +105,7 @@ def predict_flight_price(today: str, predict_datetime: str, origin: str, des: st
         # Determine the minimum predicted price
         if predictions:
             min_price = min(predictions)
-            return {"min_prediction": round(min_price, 2)}
+            return {"The price": round(min_price, 2)}
         else:
             raise HTTPException(status_code=404, detail="No predictions were made.")
 

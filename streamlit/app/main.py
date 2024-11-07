@@ -78,7 +78,13 @@ destination_code = destination_airports[destination_name]
 today = datetime.now().date()
 max_date = today + timedelta(days=60)
 
-departure_date = st.sidebar.date_input("Enter Departure Date", value=today, min_value=today, max_value=max_date)
+departure_date = st.sidebar.date_input(
+    "Enter Departure Date", 
+    value=today, 
+    min_value=today, 
+    max_value=max_date, 
+    help="You can select a date up to 60 days in advance for more accurate information."
+)
 
 # Restrict the time selection to show only hourly increments from 5:00 AM to 11:00 PM.
 
@@ -100,7 +106,32 @@ avg_distance = next(
 )
 avg_distance = int(round(avg_distance))
 
-print(f"Origin: {origin_code}, Destination: {destination_code}, Date: {departure_date}, Cabin: {cabin_type}, Distance: {avg_distance}")
+on = st.sidebar.toggle("Activate extra features")
+
+if on:
+    AirlineNameScore = st.sidebar.slider(
+        "Airline Name Score",
+        min_value=1,
+        max_value=4,
+        value=4,  
+        step=1,
+        help="Select an airline score. Encoding reference:\n"
+             "- **1**: Spirit Airlines, Frontier Airlines\n"
+             "- **2**: JetBlue Airways, Sun Country Airlines\n"
+             "- **3**: Key Lime Air, Boutique Air, Contour Airlines, Southern Airways Express, Cape Air\n"
+             "- **4**: United, Delta, American Airlines, Alaska Airlines, Hawaiian Airlines"
+    )
+
+    # Checkbox for isRefundable option
+    refund = st.sidebar.checkbox("Is Refundable", value=False)  
+
+    # Use a checkbox for basic economy
+    basic_eco = st.sidebar.checkbox("Basic Economy", value=False)  
+
+else : 
+    AirlineNameScore = 4
+    refund = False
+    basic_eco = False
 
 #def predict_price(origin, destination, departure_date, departure_time, cabin_type):
  #   # Mock prediction for illustration; replace with your actual model prediction
@@ -228,7 +259,18 @@ if st.sidebar.button("Compare Prices"):
 
             with col2:
                 st.subheader("Direct Flight Predictions", divider="gray")
-                response = requests.get(f"{FASTAPI_URL}/flight/predict/?today={the_date}&predict_datetime={departure_datetime_str}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={1}&distance={avg_distance}")
+                response = requests.get(
+                    f"{FASTAPI_URL}/flight/predict/?today={the_date}"
+                    f"&predict_datetime={departure_datetime_str}"
+                    f"&origin={origin_code}"
+                    f"&des={destination_code}"
+                    f"&cabin={cabin_type}"
+                    f"&direct={1}"
+                    f"&distance={avg_distance}"
+                    f"&aircode={AirlineNameScore}"
+                    f"&refund={refund}"
+                    f"&basic={basic_eco}"
+                )
                 if response.status_code == 200:
                     predict_data_direct = response.json()
                     non_stop_price = list(predict_data_direct.values())
@@ -242,8 +284,17 @@ if st.sidebar.button("Compare Prices"):
                 if show_one_transfer:
                     # Make the request to the FastAPI endpoint
                     response = requests.get(
-                        f"{FASTAPI_URL}/flight/predict/?today={the_date}&predict_datetime={departure_datetime_str}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={0}&distance={avg_distance}"
-                    )
+                    f"{FASTAPI_URL}/flight/predict/?today={the_date}"
+                    f"&predict_datetime={departure_datetime_str}"
+                    f"&origin={origin_code}"
+                    f"&des={destination_code}"
+                    f"&cabin={cabin_type}"
+                    f"&direct={0}"
+                    f"&distance={avg_distance}"
+                    f"&aircode={AirlineNameScore}"
+                    f"&refund={refund}"
+                    f"&basic={basic_eco}"
+                )
                     
                     # Check if the request was successful
                     if response.status_code == 200:
@@ -267,12 +318,13 @@ if st.sidebar.button("Compare Prices"):
 
                 # Provide additional tip based on price comparison
                 if direct_prices > non_stop_price:
-                    summary_text += ":blue-background[So, maybe try another day or route if possible!]"
+                    comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>So, maybe try another day or route if possible!</strong></p>"
                 else:
-                    summary_text += ":blue-background[This seems like a reasonable fare for your selection.]"
+                    comparison_text = "<p style='background-color: #4c6a92; padding: 10px; font-size: 20px; color: white;'><strong>This seems like a reasonable fare for your selection.</strong></p>"
 
                 # Display the summary in Streamlit
                 st.markdown(summary_text)
+                st.markdown(comparison_text, unsafe_allow_html=True)
         
         #st.write("*This app predict +60 days ahead to provide best results*")
 
