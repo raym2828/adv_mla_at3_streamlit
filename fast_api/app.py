@@ -36,7 +36,7 @@ async def root():
             "/flight/predict/": "Flight Price prediction",
         },
         "expected_input": {
-            "/flight/predict//": {"today": "YYYY-MM-DD", "predict_datetime": "YYYY-MM-DD", "origin": "str", "des": "str", "cabin": "str",\
+            "/flight/predict//": {"today": "YYYY-MM-DD-HH", "predict_datetime": "YYYY-MM-DD-HH", "origin": "str", "des": "str", "cabin": "str",\
                                   "direct": "int", "aircode": "int", "refund": "bool", "basic": "bool"}
         },
         "output_format": "JSON"
