@@ -133,11 +133,6 @@ else :
     refund = False
     basic_eco = False
 
-#def predict_price(origin, destination, departure_date, departure_time, cabin_type):
- #   # Mock prediction for illustration; replace with your actual model prediction
-  #  return 300  # Example predicted price
-
-
 def get_access_token(client_id, client_secret):
     url = "https://test.api.amadeus.com/v1/security/oauth2/token"
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
@@ -150,7 +145,7 @@ def get_access_token(client_id, client_secret):
     
     if response.status_code == 200:
         access_token = response.json().get("access_token")
-        print("Access token:", access_token)  # Just for debugging; avoid printing sensitive info in production.
+        print("Access token:", access_token)  
         return access_token
     else:
         print("Error:", response.status_code, response.text)
@@ -240,8 +235,6 @@ if st.sidebar.button("Compare Prices"):
                             direct_price = float(limited_offers[0]['price']['total']) 
                             direct_price_as_strings = str(direct_price)
                         else:
-                            # If 'show_direct' is False, you can add logic here to show other options if needed
-                            # For example, show the cheapest transfer flights
                             limited_offers = direct_offers[:1] + transfer_offers[:1]
                             direct_price = float(limited_offers[0]['price']['total'])  # First offer in the list is the direct flight
                             transfer_price = float(limited_offers[1]['price']['total'])
@@ -262,8 +255,6 @@ if st.sidebar.button("Compare Prices"):
                     st.info("No flights found within the specified time window.")
 
 
-# http://0.0.0.0:8000/flight/predict/?today=2024-11-04-17&lower_time=2024-12-22-10&origin=DEN&des=JFK&cabin=ECONOMY&direct=1&distance=1880
-
             with col2:
                 st.subheader(":blue[Direct Flight Prediction]", divider="gray")
                 response = requests.get(
@@ -272,7 +263,7 @@ if st.sidebar.button("Compare Prices"):
                     f"&origin={origin_code}"
                     f"&des={destination_code}"
                     f"&cabin={cabin_type}"
-                    f"&direct={1}"
+                    f"&direct={1}" # Insert 1 
                     f"&distance={avg_distance}"
                     f"&aircode={AirlineNameScore}"
                     f"&refund={refund}"
@@ -298,7 +289,7 @@ if st.sidebar.button("Compare Prices"):
                     f"&origin={origin_code}"
                     f"&des={destination_code}"
                     f"&cabin={cabin_type}"
-                    f"&direct={0}"
+                    f"&direct={0}" # Insert 0 
                     f"&distance={avg_distance}"
                     f"&aircode={AirlineNameScore}"
                     f"&refund={refund}"
@@ -315,7 +306,7 @@ if st.sidebar.button("Compare Prices"):
                     else:
                         st.error("Error fetching data.")
 
-
+            # Summary Container
             with st.container():
                 st.subheader(":sunglasses: :blue[Your Flight Summary]")
                 try:
