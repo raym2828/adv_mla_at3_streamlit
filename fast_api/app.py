@@ -47,9 +47,6 @@ def healthcheck():
     return 'Your best model is all ready to go!'
 
 
-#{FASTAPI_URL}/flight/predict/?today={the_date}&lower_time={lower_bound}\
-# &upper_time={upper_bound}&origin={origin_code}&des={destination_code}&cabin={cabin_type}&direct={1}")
-
 @app.get("/flight/predict/")
 def predict_flight_price(today: str, predict_datetime: str, origin: str, des: str, cabin: str, direct: int, distance: int, aircode: int, refund: bool, basic: bool):
     try:
