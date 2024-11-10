@@ -11,8 +11,13 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 FASTAPI_URL = "https://adv-mla-at3.onrender.com/"
 
-with open('average_distances.json', 'r') as json_file:
-    avg_distances = json.load(json_file)
+json_file_path = os.path.join(current_dir, 'average_distances.json')
+
+if os.path.exists(json_file_path):
+    with open(json_file_path, 'r') as json_file:
+        avg_distances = json.load(json_file)
+else:
+    st.error("The file 'average_distances.json' is missing in the current directory.")
 
 airports = {
     "Atlanta (ATL)": "ATL",
@@ -203,6 +208,8 @@ if st.sidebar.button("Compare Prices"):
                 st.subheader(":blue[Actual Prices]", divider="gray")
                 
                 filtered_offers = []
+                direct_price_as_strings = None
+                transfer_price_as_strings = None
                 
                 for offer in actual_price.get('data', []):
                     for itinerary in offer.get('itineraries', []):
@@ -311,7 +318,7 @@ if st.sidebar.button("Compare Prices"):
                 st.subheader(":sunglasses: :blue[Your Flight Summary]")
                 try:
                     if show_direct:
-                        if direct_price_as_strings:
+                        if direct_price_as_strings is not None:
                             summary_text = (
                             f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
                             f"in **{cabin_type}**, we predict:\n\n"
@@ -327,7 +334,7 @@ if st.sidebar.button("Compare Prices"):
                           comparison_text = ""
                           summary_text = ""
                     else:
-                        if transfer_price_as_strings:
+                        if transfer_price_as_strings is not None:
                             summary_text = (
                             f"For a flight between **{origin_name}** to **{destination_name}** on **{departure_date}** "
                             f"in **{cabin_type}**, we predict:\n\n"
